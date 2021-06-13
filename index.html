@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Croquet Dot</title>
+  <script src="https://unpkg.com/@croquet/croquet"></script>
+</head>
+<style>
+  body {
+    background: #62707f;
+  }
+
+  #dot {
+    height: 30px;
+    width: 30px;
+    background: #ffffff;
+    border-radius: 15px;
+    position: absolute;
+    box-shadow: 4px 4px 20px rgba(10, 10, 10, 0.64);
+    cursor: pointer;
+  }
+</style>
+<body>
+<div id="dot"></div>
+<script>
+  class DotModel extends Croquet.Model {
+    init() {
+      this.pos = {x: 0, y: 0}
+      this.subscribe('pos', 'setPos', this.setPos)
+    }
+
+    setPos(pos) {
+      this.pos = pos
+      this.publish('pos', 'update', this.pos)
+    }
+  }
+
+  DotModel.register('DotModel')
+
+  class DotView extends Croquet.View {
+    constructor(model) {
+      super(model)
+      dot.addEventListener('mousedown', this.onMouseDown)
+      this.subscribe('pos', 'update', this.handleUpdate)
+    }
+
+    handleUpdate = ({x, y}) => {
+      dot.style.left = `${x}px`
+      dot.style.top = `${y}px`
+    }
+    onMouseMove = (e) => {
+      const x = e.x - 15
+      const y = e.y - 15
+      this.publish('pos', 'setPos', {x, y})
+    }
+    onMouseUp = () => {
+      window.removeEventListener('mousemove', this.onMouseMove)
+      window.removeEventListener('mouseup', this.onMouseUp)
+    }
+    onMouseDown = () => {
+      window.addEventListener('mousemove', this.onMouseMove)
+      window.addEventListener('mouseup', this.onMouseUp)
+    }
+  }
+
+  Croquet.Session.join({
+    appId: 'io.codepen.croquet.hello',
+    name: 'unnamed',
+    password: 'secret',
+    model: DotModel,
+    view: DotView,
+  })
+
+</script>
+</body>
+</html>
